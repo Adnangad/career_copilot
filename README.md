@@ -1,0 +1,1 @@
+This is a Football likelihood predictor app made to calculate the likelihood of one football team winning a game
