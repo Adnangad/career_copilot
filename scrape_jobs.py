@@ -8,6 +8,16 @@ from selenium.webdriver.chrome.options import Options
 from trafilatura import fetch_url, extract
 from categorize import classify
 import time
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from dotenv import load_dotenv
+import os
+from models import Jobs
+
+load_dotenv()
+
+
+db_uri = os.getenv("psql")
 
 options = Options()
 options.add_argument("--headless=new")
@@ -15,7 +25,7 @@ options.add_argument("--no-sandbox")
 options.add_argument("--start-fullscreen")
 options.add_argument("--disable-dev-shm-usage")
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 9)
 
 actions = ActionChains(driver)
@@ -114,11 +124,39 @@ def get_jobs_info():
 try:
     jobs = get_jobs_info()
     classified_jobs = classify(jobs)
-    print(classified_jobs[0])
+    
+    engine = create_engine(db_uri)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+    # First checks if the job doesnt exist in the db and if not it adds them to the db
+    existing = session.query(Jobs).all()
+    for jb in classified_jobs:
+        title = jb.get("title")
+        company = jb.get("company")
+        
+        existing_job = session.query(Jobs).filter_by(title=title, company=company).first()
+        if existing_job:
+            print(f"Skipping duplicate: {title} at {company}")
+            continue
+        new_job = Jobs(
+            title=title,
+            company=company,
+            description=jb.get("full_description"),
+            category=jb.get("category"),
+            link=jb.get("apply_link"),
+            requirements=jb.get("requirements"),
+            tags=",".join(jb.get("tags", [])) if jb.get("tags") else None
+        )
+        session.add(new_job)
+        print(f"Added: {title} at {company}")
+    session.commit()
+    
     
 except Exception as e:
     print("An error occured")
     print("ERROR IS:: ", e)
 
 finally:
+    session.close()
     driver.quit()
