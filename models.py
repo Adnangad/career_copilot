@@ -32,12 +32,13 @@ class Jobs(Declarative_base):
             "Creative / Design / Media", "Sales & Marketing",  
             "Legal & Compliance", "Skilled Trades / Labor", "Science & Research",  
             "Government & Public Sector", "Finance & Banking",  
-            "Retail & Customer Service", "Logistics & Supply Chain",
+            "Retail & Customer Service", "Logistics & Supply Chain", "Other",
             name="job_category"
         ),
         nullable=False
     )
     description = Column(Text, nullable=True)
+    responsibilities = Column(Text, nullable=True)
     tags = Column(String, nullable=True)
     link = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
