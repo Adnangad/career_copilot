@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langgraph.graph import START, END, StateGraph, MessagesState
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.prompts import ChatPromptTemplate
@@ -38,11 +38,11 @@ model = init_chat_model(
     model_provider="xai",
     xai_api_key=xai_api
 )
-prompt = ChatPromptTemplate([
-    ("system", f"{system}"),
-    ("human", "Generate a cover letter based on this job description:{question} and tailor it using my resume: {resume}")
+prompt = ChatPromptTemplate.from_messages([
+    ("system", system),
+    ("human", "Generate a cover letter based on this job description:\n\n{question}\n\nTailor it using my resume:\n\n{resume}")
 ])
-chain = prompt | model
+
 
 
 def get_db():
@@ -52,36 +52,18 @@ def get_db():
     finally:
         db_op.close()
 
-# Fetches resume
 def get_resume(thread_id):
     resume = redis.get(f"resume:{thread_id}")
     if not resume:
         raise Exception("No Resume Found")
     if isinstance(resume, bytes):
-        resume = resume.decode("utf-8")
+        resume = resume.decode("utf-8", errors="ignore")
+    print("==== RAW RESUME TEXT ====")
+    print(resume[:500])  # print first 500 chars
+    print("=========================")
     return resume
 
-
-def call_model(state: MessagesState):
-    history = state.get("messages", [])
-    user_message = history[-1].content if history else ""
-    resume = state.get("resume", "")
-
-    response = chain.invoke({
-        "question": user_message,
-        "resume": resume
-    })
-    return response
-
-
-workflow = StateGraph(state_schema=MessagesState)
-workflow.add_node("model", call_model)
-workflow.add_edge(START, "model")
-workflow.add_edge("model", END)
-
 memory = MemorySaver()
-workflow_app = workflow.compile(checkpointer=memory)
-
 
 
 @app.post("/generate_cover_letter")
@@ -91,18 +73,21 @@ def generate_cover(thread_id: str, jobId: int, db: Session = Depends(get_db)):
         job = db.query(Jobs).filter_by(id=jobId).first()
         if not job:
             return {"status": 404, "message": "Job not found"}
-
         resume = get_resume(thread_id)
-        state = {
-            "messages": [HumanMessage(content=job.description)],
-            "thread_id": thread_id,
-            "resume": resume
-        }
+        messages = [
+            SystemMessage(content=system),
+            HumanMessage(content=f"""Generate a cover letter based on this job description:
+                {job.description}
+                Tailor it using my resume: {resume}""")
+            ]
 
-        response = workflow_app.invoke(state, config)
-        ai_message = response["messages"][-1]
+        response = model.invoke(messages)
 
-        return {"status": 200, "message": "Success", "letter": ai_message.content}
+        print("=== MODEL RESPONSE ===")
+        print(response.content)
+        print("======================")
+
+        return {"status": 200, "message": "Success", "letter": response.content}
     except Exception as e:
         print("AN ERROR OCCURED WHILE GENERATING CV", e)
         return {"status": 500, "message": "Error, Unable to generate cover letter at this time"}
