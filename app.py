@@ -59,7 +59,7 @@ def get_resume(thread_id):
     if isinstance(resume, bytes):
         resume = resume.decode("utf-8", errors="ignore")
     print("==== RAW RESUME TEXT ====")
-    print(resume[:500])  # print first 500 chars
+    print(resume[:100])
     print("=========================")
     return resume
 
