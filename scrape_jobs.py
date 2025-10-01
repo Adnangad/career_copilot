@@ -12,7 +12,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
-from models import Jobs
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
@@ -29,6 +30,12 @@ driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 9)
 
 actions = ActionChains(driver)
+
+engine = create_engine(db_uri)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = automap_base()
+Base.prepare(engine)
+Jobs = Base.classes.jobs
 
 url = "https://hiring.cafe/"
 
@@ -121,21 +128,20 @@ def get_jobs_info():
 
     return jobs
 
+db = SessionLocal()
+
 try:
     jobs = get_jobs_info()
     classified_jobs = classify(jobs)
     
-    engine = create_engine(db_uri)
-    Session = sessionmaker(bind=engine)
-    session = Session()
     
     # First checks if the job doesnt exist in the db and if not it adds them to the db
-    existing = session.query(Jobs).all()
+    existing = db.query(Jobs).all()
     for jb in classified_jobs:
         title = jb.get("title")
         company = jb.get("company")
         
-        existing_job = session.query(Jobs).filter_by(title=title, company=company).first()
+        existing_job = db.query(Jobs).filter_by(title=title, company=company).first()
         if existing_job:
             print(f"Skipping duplicate: {title} at {company}")
             continue
@@ -148,9 +154,8 @@ try:
             requirements=jb.get("requirements"),
             tags=",".join(jb.get("tags", [])) if jb.get("tags") else None
         )
-        session.add(new_job)
-        print(f"Added: {title} at {company}")
-    session.commit()
+        db.add(new_job)
+    db.commit()
     
     
 except Exception as e:
@@ -158,5 +163,5 @@ except Exception as e:
     print("ERROR IS:: ", e)
 
 finally:
-    session.close()
+    db.close()
     driver.quit()
