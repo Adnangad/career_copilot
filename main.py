@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, Response
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langgraph.graph import START, END, StateGraph, MessagesState
@@ -8,9 +8,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker, Session
 from os import getenv
-from promptz import system, analyser_prompt
+from promptz import system, analyser_prompt, classifier_prompt
 from upstash_redis import Redis
 from langchain.chat_models import init_chat_model
+from typing import List
+from pydantic import BaseModel
+
+class JobRequest(BaseModel):
+    job_titles: List[str]
+
 
 load_dotenv()
 
@@ -106,3 +112,21 @@ def generate_cover(thread_id: str, jobId: int, db: Session = Depends(get_db)):
     except Exception as e:
         print("AN ERROR OCCURED WHILE GENERATING CV", e)
         return {"status": 500, "message": "Error, Unable to generate cover letter at this time"}
+
+@app.post("/categorize")
+def categorize_jobs(request: JobRequest):
+    try:
+        job_titles = request.job_titles
+        messages = [
+            SystemMessage(content=classifier_prompt),
+            HumanMessage(content=f"""Categorize the following jobs into their appropriate categories {job_titles}""")
+        ]
+        response = model.invoke(messages)
+        print("=== MODEL RESPONSE ===")
+        print(response.content)
+        print("======================")
+        
+        return {"categories": response.content}
+    except Exception as e:
+        print("AN ERROR OCCURED WHILE CATEGORIZING", e)
+        return {"status": 500, "message": "Error, Unable to categorize at this time"}
