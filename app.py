@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import sessionmaker, Session
 from os import getenv
-from promptz import system
+from promptz import system, analyser_prompt
 from upstash_redis import Redis
 from langchain.chat_models import init_chat_model
 
@@ -38,11 +38,6 @@ model = init_chat_model(
     model_provider="xai",
     xai_api_key=xai_api
 )
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system),
-    ("human", "Generate a cover letter based on this job description:\n\n{question}\n\nTailor it using my resume:\n\n{resume}")
-])
-
 
 
 def get_db():
@@ -65,6 +60,26 @@ def get_resume(thread_id):
 
 memory = MemorySaver()
 
+@app.post("/analyze")
+def analyse_candidate(thread_id: str, jobId: int, db: Session = Depends(get_db)):
+    try:
+        resume = get_resume(thread_id)
+        job = db.query(Jobs).filter_by(id=jobId).first()
+        messages = [
+            SystemMessage(content=analyser_prompt),
+            HumanMessage(content=f"""Based on this job description:
+                {job.description}
+                What is my likelihood of landing the job , here is my resume: {resume}""")
+        ]
+        response = model.invoke(messages)
+        print("=== MODEL RESPONSE ===")
+        print(response.content)
+        print("======================")
+
+        return {"status": 200, "message": "Success", "analysis": response.content}
+    except Exception as e:
+        print("ERROR WHILE ANALYSING:: ", e)
+        return {"status": 500, "message": "Error, Unable to generate analysis at this time"}
 
 @app.post("/generate_cover_letter")
 def generate_cover(thread_id: str, jobId: int, db: Session = Depends(get_db)):
