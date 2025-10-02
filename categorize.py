@@ -94,6 +94,8 @@ def get_llm_categorizers(jobs: list):
         title = job["title"]
         job_titles.append(title.lower())
     cat_url = llm_url + "categorize"
+    print("LLM_API exists:", bool(os.getenv("LLM_API")))
+    print("THE URL IS:: ", cat_url)
     response = requests.post(cat_url, json={"job_titles": job_titles})
     print("RESPONSE IS:: ", response)
     if response.status_code == 200:
