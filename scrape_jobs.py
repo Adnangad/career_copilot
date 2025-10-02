@@ -18,7 +18,7 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 
-db_uri = os.getenv("psql")
+db_uri = os.getenv("PSQL")
 
 options = Options()
 options.add_argument("--headless=new")

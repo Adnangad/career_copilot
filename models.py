@@ -10,7 +10,7 @@ import os
 load_dotenv()
 
 
-db_uri = os.getenv("psql")
+db_uri = os.getenv("PSQL")
 
 if db_uri is None:
     print("Not found")

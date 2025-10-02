@@ -11,6 +11,10 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    env:
+      PSQL: ${{ secrets.PSQL }}
+      LLM_API: ${{ secrets.LLM_API }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,5 +29,4 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run Script
-        run: |
-          python scrape_jobs.py
+        run: python scrape_jobs.py
