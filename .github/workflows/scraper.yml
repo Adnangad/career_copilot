@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "0 21 * * *"
   workflow_dispatch:
+  push:
+    branches:
+      - fetch_jobs
 
 jobs:
   run-script:
