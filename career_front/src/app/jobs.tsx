@@ -1,3 +1,4 @@
+"use client";
 import axios from "axios";
 import { type } from "os";
 import { JOBDATA } from "./types";
