@@ -1,44 +1,47 @@
 "use client";
 import Image from "next/image";
 import Jobs from "./jobs";
-import 'ldrs/react/Quantum.css'
+import "ldrs/react/Quantum.css";
 import { JOBDATA } from "./types";
 import axios from "axios";
 import { useState, useEffect } from "react";
 
 export default function Home() {
-  const [jobs, setJobs] = useState<JOBDATA[]>([])
+  const [jobs, setJobs] = useState<JOBDATA[]>([]);
   const [error, setError] = useState("");
   const [jobsLoading, setJobsLoading] = useState(true);
+
   useEffect(() => {
     async function fetch_jobs(page = 1, limit = 10) {
       try {
-        let url = process.env.NEXT_PUBLIC_JOBS_URL;
-        url += `?page=${page}&page_size=${limit}`;
-        if (url) {
-          const response: Response = await axios.get(url);
-          if (response.status == 200) {
-            console.log("SUCCESS IN FETCHING THE DATA")
-            const data = await response.json()
-            setJobs(data);
-            setJobsLoading(false);
-          }
-          else setError("Unable To fetch jobs at this moment");
-        }
-        else {
+        const baseUrl = process.env.NEXT_PUBLIC_JOBS_URL;
+        if (!baseUrl) {
           console.error("NO FETCH JOBS URL FOUND");
           setError("Unable to fetch jobs at this moment");
           setJobsLoading(false);
+          return;
         }
-      }
-      catch (err: any) {
-        console.error("ERROR IS:: ", err);
+
+        const url = `${baseUrl}?page=${page}&page_size=${limit}`;
+        const response = await axios.get(url);
+
+        if (response.status === 200) {
+          console.log("✅ SUCCESS IN FETCHING THE DATA");
+          setJobs(response.data);
+        } else {
+          setError("Unable to fetch jobs at this moment");
+        }
+      } catch (err) {
+        console.error("ERROR IS:", err);
         setError("Unable to fetch jobs at this time");
+      } finally {
         setJobsLoading(false);
       }
     }
-    fetch_jobs()
-  }, [jobs]);
+
+    fetch_jobs();
+  }, []);
+
   return (
     <>
       <div className="w-full h-20 p-2 bg-white flex items-center justify-between px-6 rounded-2xl mt-2">
@@ -47,7 +50,8 @@ export default function Home() {
             <Image src="/search.svg" alt="Search Icon" width={16} height={16} />
           </span>
           <input
-            type="text" placeholder="Search..."
+            type="text"
+            placeholder="Search..."
             className="pl-10 pr-4 py-2 w-[500px] border rounded-xl focus:outline-none focus:ring-2 focus:ring-black hover:bg-gray-200"
           />
         </div>
@@ -60,7 +64,8 @@ export default function Home() {
           <p>Upload Resume</p>
         </div>
       </div>
-      <Jobs jobs={jobs} error={error} jobsLoading={jobsLoading}></Jobs>
+
+      <Jobs jobs={jobs} error={error} jobsLoading={jobsLoading} />
     </>
   );
 }
