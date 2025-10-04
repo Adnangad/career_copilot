@@ -1,6 +1,6 @@
 # This module defines the various api endpoints
 
-from fastapi import FastAPI, Depends, UploadFile, Response, Request
+from fastapi import FastAPI, Depends, UploadFile, Response, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -12,6 +12,8 @@ from uuid import uuid4
 import io
 from PyPDF2 import PdfReader
 import requests
+from math import ceil
+from typing import List, Optional
 load_dotenv()
 
 app = FastAPI()
@@ -33,7 +35,7 @@ redis = Redis(url=redis_url, token=redis_token)
 db_uri = os.getenv('psql')
 engine = create_engine(db_uri)
 Base = automap_base()
-Base.prepare(engine, reflect=True)
+Base.prepare(engine)
 Jobs = Base.classes.jobs
 
 def get_db():
@@ -63,10 +65,21 @@ def delete_resume(thread_id):
 
 
 @app.get("/jobs")
-def root(page: int = 1, page_size: int = 10, db: Session = Depends(get_db)):
+def root(page: int = 1, page_size: int = 10, filters: Optional[List[str]] = Query(None), db: Session = Depends(get_db)):
     try:
-        data = db.query(Jobs).offset((page - 1) * page_size).limit(page_size).all()
-        return data
+        query = db.query(Jobs)
+        if filters:
+            query = query.filter(Jobs.category.in_(filters))
+        total_jobs = query.count()
+        total_pages = ceil(total_jobs / page_size) if total_jobs else 1
+        data = (
+            query.offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
+        has_next = page < total_pages
+        has_prev = page > 1
+        return {"total_pages": total_pages, "jobs": data, "has_next": has_next, "has_prev": has_prev}
     except Exception as e:
         print("AN ERROR OCCURED:: ", e)
         return {"status": "Error", "message": "Unable to fetch data at this time"}
