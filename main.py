@@ -1,6 +1,7 @@
 # This module defines the various api endpoints
 
 from fastapi import FastAPI, Depends, UploadFile, Response, Request
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
@@ -14,6 +15,14 @@ import requests
 load_dotenv()
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "https://career-copilot-9qfry53c5-adnangads-projects.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 llm_api = os.getenv("LLM_API")
 
