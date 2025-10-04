@@ -1,6 +1,4 @@
 "use client";
-import axios from "axios";
-import { type } from "os";
 import { JOBDATA } from "./types";
 import { Quantum } from "ldrs/react";
 import 'ldrs/react/Quantum.css'

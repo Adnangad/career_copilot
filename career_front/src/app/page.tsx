@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import Jobs from "./jobs";
-import { Quantum } from "ldrs/react";
 import 'ldrs/react/Quantum.css'
 import { JOBDATA } from "./types";
 import axios from "axios";
