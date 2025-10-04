@@ -16,7 +16,7 @@ export default function Home() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_JOBS_URL;
         if (!baseUrl) {
-          console.error("NO FETCH JOBS URL FOUND");
+          console.error("NO FETCH JOBS URL FOUND..");
           setError("Unable to fetch jobs at this moment");
           setJobsLoading(false);
           return;
