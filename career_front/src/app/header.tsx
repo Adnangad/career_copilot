@@ -21,6 +21,10 @@ export default function Header() {
             event.preventDefault();
             setErrorMess("")
             setIsLoading(true);
+            if (fileInputRef.current.files.length <= 0) {
+                setErrorMess("Please upload a file")
+                return;
+            }
             const formData = new FormData();
             if (fileInputRef.current.files.length > 0) {
                 formData.append('file', fileInputRef.current.files[0])
