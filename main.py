@@ -100,17 +100,19 @@ async def upload_res(file: UploadFile, response: Response, request: Request):
             max_age=3600 * 24,
             httponly=True,
             secure=True,
-            samesite="Lax"
+            samesite="None"
         )
         return {"status": 200, "message": "Resume uploaded successfully, kindly note that your resume is only stored for 1 day"}
     except Exception as e:
         print("ERROR IS:: ", e)
         return {'status': 500, 'message': 'Unable to upload resume'}
 
-@app.post("/analyse_chances")
+@app.get("/analyse_chances")
 async def analyse_chance(jobId: int, request: Request, db: Session = Depends(get_db)):
     try:
+        print("ACCESSED")
         thread_id = request.cookies.get("session_id")
+        print(request.cookies)
         job = db.query(Jobs).filter_by(id=jobId).first()
         if not job:
             return {"status": 404, "message": "Job not found"}
@@ -127,7 +129,7 @@ async def analyse_chance(jobId: int, request: Request, db: Session = Depends(get
         print("ERROR IS:: ", e)
         return {'status': 500, 'message': 'Unable to perform analysis at this time'}
 
-@app.post("/generate_cover_letter")
+@app.get("/generate_cover_letter")
 async def generate_cv(jobId: int, request: Request, db: Session = Depends(get_db)):
     try:
         thread_id = request.cookies.get("session_id")
