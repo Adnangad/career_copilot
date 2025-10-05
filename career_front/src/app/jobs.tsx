@@ -11,7 +11,7 @@ import { useMemo } from "react";
 
 function useLocalStorage<T>(key: string, initialValue: T) {
     const [value, setValue] = useState<T>(() => {
-        if (typeof window === "undefined") return initialValue; // Prevent SSR crash
+        if (typeof window === "undefined") return initialValue;
         try {
             const saved = localStorage.getItem(key);
             return saved ? JSON.parse(saved) : initialValue;
