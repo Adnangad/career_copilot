@@ -9,3 +9,10 @@ export type JOBDATA = {
     link: string;
     created_at: string;
 }
+
+export type ANALYSISDATA = {
+    relevant_skills_and_experiences : string[];
+    areas_for_improvement: string[];
+    match_score: string;
+    summary_and_resoning: string;
+}

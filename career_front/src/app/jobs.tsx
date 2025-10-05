@@ -6,17 +6,44 @@ import axios from "axios";
 import Image from "next/image";
 import Job_Description from "./jd";
 import { useState, useEffect, useRef } from "react";
+import { useCallback } from "react";
+import { useMemo } from "react";
+
+function useLocalStorage<T>(key: string, initialValue: T) {
+    const [value, setValue] = useState<T>(() => {
+        if (typeof window === "undefined") return initialValue; // Prevent SSR crash
+        try {
+            const saved = localStorage.getItem(key);
+            return saved ? JSON.parse(saved) : initialValue;
+        } catch (err) {
+            console.error("Error accessing localStorage:", err);
+            return initialValue;
+        }
+    });
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (err) {
+            console.error("Error saving to localStorage:", err);
+        }
+    }, [key, value]);
+
+    return [value, setValue] as const;
+}
+
 
 export default function Jobs() {
     const [jobs, setJobs] = useState<JOBDATA[]>([]);
-    const [job, setJob] = useState<JOBDATA | null>(null);
     const [error, setError] = useState("");
     const [jobsLoading, setJobsLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [filter, setFilter] = useState([]);
-    const [applyFilter, setApplyFilter] = useState(false);
+    const [filter, setFilter] = useLocalStorage<string[]>("jobFilters", []);
+    const [job, setJob] = useLocalStorage<JOBDATA | null>("selectedJob", null);
+
     const filterOptions = {
         "Engineering": "engineering", "Software": "software_and_technology", "Sales": "sales_and_marketing",
         "Business": "business_operations", "Food and hospitality": "food_and_hospitality", "Healthcare": 'healthcare', "Education": 'education_and_training', "Media / design": 'creative_design_media',
@@ -24,8 +51,6 @@ export default function Jobs() {
         "Finance and banking": "finance_and_banking", "Retail and Customer service": 'retail_and_customerservice', "Logistics and Supply Chain": 'logistics_and_supply_chain', "Other": 'Other'
     };
 
-    console.log("APPLY FILTER IS:: ", applyFilter)
-    let filter_urlz = "";
     function add_filter(val: string) {
         if (filter.includes(val)) {
             setFilter(filter.filter((f) => f !== val));
@@ -33,16 +58,16 @@ export default function Jobs() {
             setFilter([...filter, val]);
         }
     }
-
-    for (let i = 0; i < filter.length; i++) {
-        filter_urlz += `&filters=${filter[i]}`;
-    }
+    const filter_urlz = useMemo(() => {
+        return filter.map(f => `&filters=${f}`).join(``);
+    }, [filter]);
 
     const observerRef = useRef<HTMLDivElement | null>(null);
 
-    async function fetch_jobs(page = 1, limit = 10, append = false) {
+    const fetch_jobs = useCallback(async (page = 1, limit = 10, append = false) => {
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_JOBS_TEST;
+            console.log("CALLED___")
+            const baseUrl = process.env.NEXT_PUBLIC_JOBS_URL;
             if (!baseUrl) {
                 setError("No jobs URL found in environment variables.");
                 return;
@@ -69,14 +94,11 @@ export default function Jobs() {
             setJobsLoading(false);
             setLoadingMore(false);
         }
-    }
-    if (filter.length > 0 && applyFilter) {
-        fetch_jobs();
-        setApplyFilter(false)
-    }
+    }, [filter_urlz, setJob]);
     useEffect(() => {
         fetch_jobs();
     }, [fetch_jobs]);
+
 
     useEffect(() => {
         if (!observerRef.current || !hasMore) return;
@@ -107,12 +129,6 @@ export default function Jobs() {
                         >{key}</button>
                     </div>
                 ))}
-                <div>
-                    <button
-                        className="cursor-pointer p-2 rounded-xl border bg-gray-300 hover:bg-blue-300"
-                        onClick={() => setApplyFilter(true)}
-                    >Apply Filters</button>
-                </div>
             </div>
             <div className="flex flex-col md:flex-row gap-5 mt-2 rounded-2xl ml-2">
                 <div className="bg-white shadow-md rounded-2xl w-full md:w-[30%] p-5 overflow-y-auto max-h-[80vh]">
@@ -133,7 +149,7 @@ export default function Jobs() {
                     )}
 
                     <div className="space-y-3">
-                        {jobs.filter((data) => filter.length === 0 || filter.includes(data.category)).map((data, index) => (
+                        {jobs.map((data, index) => (
                             <div
                                 key={index}
                                 onClick={() => setJob(data)}
