@@ -1,0 +1,32 @@
+name: Scraper Script
+
+on:
+  schedule:
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - fetch_jobs
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    env:
+      PSQL: ${{ secrets.PSQL }}
+      LLM_API: ${{ secrets.LLM_API }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Script
+        run: python scrape_jobs.py

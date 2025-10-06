@@ -1,1 +1,2 @@
-THis is a carrer path repo
+This APP SCRAPES JOBS AND SAVES THEM IN A DB
+
