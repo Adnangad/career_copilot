@@ -137,7 +137,7 @@ async def analyse_chance(jobId: int, request: Request, db: Session = Depends(get
             return {"status": 404, "message": "Job not found"}
         if thread_id is None:
             return {"status": 403, "message": "You are yet to include your resume"}
-        analyse_url = "http://127.0.0.1:8001/" + f"analyze?thread_id={thread_id}&jobId={jobId}"
+        analyse_url = llm_api + f"analyze?thread_id={thread_id}&jobId={jobId}"
         print("URL IS:: ", analyse_url)
         resp = requests.post(analyse_url)
         data = resp.json()
@@ -160,7 +160,7 @@ async def generate_cv(jobId: int, request: Request, db: Session = Depends(get_db
         
         if thread_id is None:
             return {"status": 403, "message": "You are yet to include your resume"}
-        cv_url = "http://127.0.0.1:8001/" + f"generate_cover_letter?thread_id={thread_id}&jobId={jobId}"
+        cv_url = llm_api + f"generate_cover_letter?thread_id={thread_id}&jobId={jobId}"
         resp = requests.post(cv_url)
         data = resp.json()
         if data["status"] == 200:
