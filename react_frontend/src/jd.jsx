@@ -1,7 +1,9 @@
-
 import { Building2, Briefcase } from "lucide-react";
 import { Quantum } from "ldrs/react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import React from "react";
+import html2pdf from "html2pdf.js";
+import { X } from "lucide-react";
 
 
 export default function Job_Description({ job }) {
@@ -10,7 +12,14 @@ export default function Job_Description({ job }) {
     const [analysisData, setAnalysisData] = useState();
     const [isLoading, setIsLoading] = useState(false);
     const [errorMess, setErrorMess] = useState("");
+    const [generatedLetter, setGeneratedLeter] = useState();
+    const [showLetter, setShowLetter] = useState(false);
+    const [downloadError, setDownloadError] = useState("");
+    const [downloadPopup, setDownloadPopup] = useState(false);
+    const letter = useRef();
+
     const analysisUrl = import.meta.env.VITE_PUBLIC_ANALYSIS_TEST + `?jobId=${job.id}`;
+    const letterUrl = import.meta.env.VITE_PUBLIC_GENERATE_TEST + `?jobId=${job.id}`;
 
     async function fetch_analysis() {
         try {
@@ -23,10 +32,16 @@ export default function Job_Description({ job }) {
                 });
             const data = await response.json();
             if (response.status === 200) {
-                const parsedData = typeof data['analysis'] === "string" ? JSON.parse(data['analysis']) : data['analysis'];
-                setAnalysisData(parsedData);
-                localStorage.setItem(`${job.id}-analysis`, JSON.stringify(parsedData))
-                console.log("fteched analysis data: ", parsedData)
+                let analysis = data['analysis'];
+                if (typeof analysis === "string") {
+                    try {
+                        analysis = JSON.parse(analysis);
+                    } catch (err) {
+                        console.error("Invalid JSON in analysis:", analysis);
+                    }
+                }
+                setAnalysisData(analysis);
+                console.log("Fetched analysis data:", analysis);
             } else {
                 setErrorMess(data["message"]);
             }
@@ -38,21 +53,62 @@ export default function Job_Description({ job }) {
         }
     }
 
+    async function generate_letter() {
+        try {
+            console.log("GENERATION STARTED  ")
+            setErrorMess("");
+            setIsLoading(true);
+            const resp = await fetch(letterUrl, {
+                method: "GET",
+                credentials: "include"
+            });
+            const data = await resp.json();
+            if (resp.status == 200) {
+                console.log("RECEIVED:: ", typeof (data["letter"]));
+                setGeneratedLeter(data["letter"]);
+            }
+            else {
+                setErrorMess(data["message"]);
+            }
+        } catch (error) {
+            console.log("ERROR WHILE GENERATING COVER LETTER:: ", error);
+            setErrorMess("Unable to generate cover letter at this time");
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     async function show_analysis() {
         setShowJobDes(false);
         setShowAnalysis(true);
-        const cached = localStorage.getItem(`${job.id}-analysis`);
-        if (cached) {
-            try {
-                setAnalysisData(JSON.parse(cached));
-                setErrorMess("");
-            } catch (e) {
-                console.error("Failed to parse cached analysis:", e);
-                await fetch_analysis();
-            }
-        } else {
-            await fetch_analysis();
+        await fetch_analysis()
+    }
+    async function show_letter() {
+        setShowJobDes(false);
+        setShowLetter(true);
+        await generate_letter();
+    }
+    async function download_cover() {
+        console.log("CALLEDDDDD")
+        if (!job || !generate_letter) {
+            setDownloadError("Unable to download");
+            return;
+        }
+        else {
+            setDownloadPopup(true);
+            const jt = job.title.replace(/[^\w\s]/gi, "").replace(/\s+/g, "_") || "Job";
+            const jcomp = job.company.replace(/[^\w\s]/gi, "").replace(/\s+/g, "_") || "Company";
+            const fileName = `Cover_letter_${jcomp}_${jt}.pdf`;
+
+            const element = letter.current;
+            const opt = {
+                margin: 0.5,
+                filename: fileName,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+            };
+            html2pdf().from(element).set(opt).save()
         }
     }
     return (
@@ -93,7 +149,9 @@ export default function Job_Description({ job }) {
                             </button>
                         </div>
                         <div>
-                            <button className="bg-blue-500 p-2 rounded cursor-pointer text-white hover:bg-blue-600">
+                            <button
+                                onClick={show_letter}
+                                className="bg-blue-500 p-2 rounded cursor-pointer text-white hover:bg-blue-600">
                                 Generate Cover Letter
                             </button>
                         </div>
@@ -205,7 +263,72 @@ export default function Job_Description({ job }) {
                 </div>
             )}
             {/* ================= COVER LETTER SECTION ================= */}
-            
+            {showLetter && (
+                <div className="w-full mt-2 text-gray-800 bg-white rounded-2xl shadow-md p-8 overflow-y-auto max-h-[80vh]">
+                    <div className="border-b pb-4 mb-6 flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-900">Generated Cover Letter</h2>
+                        <button
+                            onClick={() => {
+                                setShowLetter(false);
+                                setShowJobDes(true);
+                            }}
+                            className="bg-gray-500 p-2 rounded text-white hover:bg-gray-800"
+                        >
+                            Back to Job
+                        </button>
+                        <button
+                            onClick={download_cover}
+                            className="bg-gray-500 p-2 rounded text-white hover:bg-blue-400 cursor-pointer"
+                        >
+                            Download cover letter
+                        </button>
+                    </div>
+
+                    {isLoading && (
+                        <div className="flex justify-center items-center py-10">
+                            <Quantum size={100} />
+                        </div>
+                    )}
+
+                    {!isLoading && errorMess && (
+                        <p className="text-red-600 text-center">{errorMess}</p>
+                    )}
+
+                    {!isLoading && !errorMess && generatedLetter && (
+                        <div className="space-y-8 bg-gray-800 p-8">
+                            <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8 md:p-12" ref={letter}>
+                                <p className="text-lg font-semibold text-black">
+                                    {generatedLetter.split("\n").map((line, index) => (
+                                        <React.Fragment key={index}>
+                                            {line}
+                                            <br />
+                                        </React.Fragment>
+                                    ))}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                    {downloadPopup && (
+                        <div className=
+                            "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-100 w-[400px] h-[200px] rounded-2xl shadow-lg z-50 p-6"
+                        >
+                            <div className="float-right">
+                                <X className="text-red-600 cursor-pointer" onClick={() => setDownloadPopup(false)}></X>
+                            </div>
+                            <div className="ml-10 mt-8">
+                                <p className="text-black"><b>Please note:</b></p>
+                                <p>The generated letter still needs to be edited and refined further for use.</p>
+                            </div>
+                            {downloadError.length > 0 && (
+                                <div className="flex justify-center">
+                                    <p className="text-red-500">{downloadError}</p>
+                                </div>
+                            )}
+                        </div>
+                    )
+                    }
+                </div>
+            )}
         </>
     );
 }

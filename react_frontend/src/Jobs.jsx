@@ -31,7 +31,8 @@ function useLocalStorage(key, initialValue) {
 }
 
 
-export default function Jobs() {
+export default function Jobs({ searchValue }) {
+    console.log("RECEIVED:: ", searchValue);
     const [jobs, setJobs] = useState([]);
     const [error, setError] = useState("");
     const [jobsLoading, setJobsLoading] = useState(true);
@@ -63,7 +64,9 @@ export default function Jobs() {
 
     const fetch_jobs = useCallback(async (page = 1, limit = 10, append = false) => {
         try {
-            console.log("CALLED___")
+            setJobsLoading(true)
+            setJobs([])
+            setJob(null)
             const baseUrl = import.meta.env.VITE_PUBLIC_JOBS_TEST;
             if (!baseUrl) {
                 setError("No jobs URL found in environment variables.");
@@ -74,13 +77,23 @@ export default function Jobs() {
 
             if (response.status === 200 && response.data?.jobs) {
                 console.log("Jobs fetched successfully");
-                const newJobs = response.data.jobs
+                let newJobs = response.data.jobs
 
+                if (searchValue.length > 0) {
+                    console.log("FILTERING")
+                    newJobs = newJobs.filter((data) =>
+                        [data.title, data.category, data.tags, data.company]
+                            .join(" ")
+                            .toLowerCase()
+                            .includes(searchValue.toLowerCase())
+                    );
+                }
                 setJobs((prev) => append ? [...prev, ...newJobs] : newJobs);
                 setJob((prev) => prev ?? newJobs[0]);
                 setHasMore(newJobs.length === limit)
             } else {
                 setError("Unable to fetch jobs at this moment.");
+                setJobsLoading(false);
                 setHasMore(false)
             }
         } catch (err) {
@@ -91,10 +104,11 @@ export default function Jobs() {
             setJobsLoading(false);
             setLoadingMore(false);
         }
-    }, [filter_urlz, setJob]);
+    }, [filter_urlz, setJob, searchValue]);
+    
     useEffect(() => {
         fetch_jobs();
-    }, [fetch_jobs]);
+    }, [fetch_jobs, searchValue]);
 
 
     useEffect(() => {
@@ -115,7 +129,7 @@ export default function Jobs() {
 
     return (
         <>
-            <div className="w-full p-3 mt-2 bg-white mr-2 ml-2 flex flex-wrap justify-start gap-9">
+            <div className="p-3 mt-2 bg-white mr-3 ml-2 flex flex-wrap justify-start gap-9 shadow-2xl">
                 {Object.keys(filterOptions).map((key) => (
                     <div key={key}>
                         <button onClick={() => add_filter(filterOptions[key])}

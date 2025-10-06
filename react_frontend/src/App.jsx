@@ -6,10 +6,11 @@ import Header from './Header'
 import Jobs from './Jobs'
 
 function App() {
+  const [searchValue, setSearch] = useState("")
   return (
     <>
-     <Header></Header>
-     <Jobs></Jobs>
+     <Header setSearch={setSearch}></Header>
+     <Jobs searchValue={searchValue}></Jobs>
     </>
   )
 }

@@ -5,15 +5,18 @@ import { X } from "lucide-react";
 import { Bouncy } from "ldrs/react";
 import 'ldrs/react/Bouncy.css';
 
-export default function Header() {
+export default function Header({setSearch}) {
     const [showUpload, setShowUpload] = useState(false);
     const fileInputRef = useRef(null);
     const resumeUrl = import.meta.env.VITE_PUBLIC_RESUME_TEST;
     const [errorMess, setErrorMess] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [searchVal, setSearchVal] = useState("");
 
-    console.log("SHOW UPLOAD IS:: ", showUpload);
-
+    async function applySearch() {
+        console.log("SEARCHING:>>> ", searchVal)
+        setSearch(searchVal);        
+    }
     const handleSubmit = async (event) => {
         try {
             event.preventDefault();
@@ -48,16 +51,22 @@ export default function Header() {
     }
 
     return (
-        <div className="headerz ml-2">
+        <div className="headerz ml-2 shadow-2xl">
             <div className="logo">
                 <a href="#">
-                    <img src='/logo.svg' className="Testlogo" alt="Logo" width={130} height={50} />
+                    <img src='/logo.svg' className="Testlogo" alt="Logo" width={100} height={20} />
                 </a>
             </div>
 
             <nav className="navBar">
                 <div>
-                    <input type="text" className="border rounded-2xl p-2 w-2xl" placeholder="Search..."></input>
+                    <input type="text" 
+                    onChange={(e) => setSearchVal(e.target.value)}
+                    className="border rounded-2xl p-2 w-2xl" placeholder="Search..."></input>
+                    <button type="submit"
+                    onClick={applySearch}
+                    className="ml-3 p-2 pl-5 pr-5 bg-blue-400 rounded-xl text-white cursor-pointer hover:bg-blue-200 hover:text-black"
+                    >Search</button>
                 </div>
                 <div className="ml-30 cursor-pointer" onClick={() => setShowUpload(true)}>
                     <img
@@ -67,7 +76,6 @@ export default function Header() {
                 </div>
                 <div className="settings">
                     <img src='/settings.svg' alt="settings" width={20} height={30}></img>
-                    <img src="/options.svg" alt="settings" width={10} height={30} />
                 </div>
             </nav>
             {showUpload && (
