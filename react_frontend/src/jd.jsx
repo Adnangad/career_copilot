@@ -18,8 +18,8 @@ export default function Job_Description({ job }) {
     const [downloadPopup, setDownloadPopup] = useState(false);
     const letter = useRef();
 
-    const analysisUrl = import.meta.env.VITE_PUBLIC_ANALYSIS_TEST + `?jobId=${job.id}`;
-    const letterUrl = import.meta.env.VITE_PUBLIC_GENERATE_TEST + `?jobId=${job.id}`;
+    const analysisUrl = import.meta.env.VITE_PUBLIC_ANALYSE_URL + `?jobId=${job.id}`;
+    const letterUrl = import.meta.env.VITE_PUBLIC_GENERATE_URL + `?jobId=${job.id}`;
 
     async function fetch_analysis() {
         try {

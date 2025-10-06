@@ -67,7 +67,7 @@ export default function Jobs({ searchValue }) {
             setJobsLoading(true)
             setJobs([])
             setJob(null)
-            const baseUrl = import.meta.env.VITE_PUBLIC_JOBS_TEST;
+            const baseUrl = import.meta.env.VITE_PUBLIC_JOBS_URL;
             if (!baseUrl) {
                 setError("No jobs URL found in environment variables.");
                 return;

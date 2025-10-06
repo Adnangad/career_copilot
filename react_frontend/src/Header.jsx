@@ -8,7 +8,7 @@ import 'ldrs/react/Bouncy.css';
 export default function Header({setSearch}) {
     const [showUpload, setShowUpload] = useState(false);
     const fileInputRef = useRef(null);
-    const resumeUrl = import.meta.env.VITE_PUBLIC_RESUME_TEST;
+    const resumeUrl = import.meta.env.VITE_PUBLIC_RESUME_URL;
     const [errorMess, setErrorMess] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [searchVal, setSearchVal] = useState("");
