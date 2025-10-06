@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+.headerz {
+    top: 18px;
+    width: 1564px;
+    height: 72px;
+    background: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border-radius: 70px;
+    opacity: 1;
+    width: fit-content;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    width: auto;
+    margin-left: 10px;
+    height: auto;
+}
+
+.navBar {
+    margin-left: 250px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 120px;
+    height: 30px;
+    padding-left: 10px;
+    cursor: pointer;
+}
+
+.iconCont {
+    display: flex;
+    flex-direction: column;
+}
+
+.navItem:hover {
+    background-color: #01F0D0;
+    border-radius: 20px;
+}
+
+.navItem.active {
+    background: var(--activestate_bg_1) 0% 0% no-repeat padding-box;
+    background: #01F0D0 0% 0% no-repeat padding-box;
+    border-radius: 20px;
+    opacity: 1;
+}
+
+
+.settings {
+    float: right;
+    display: flex;
+    gap: 20px;
+    margin-left: 80px;
+    padding-right: 20px;
+}
+
+.doctorPic {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.docInfo {
+    display: flex;
+    flex-direction: column;
+}
