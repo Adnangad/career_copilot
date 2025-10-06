@@ -111,7 +111,7 @@ export default function Jobs({ searchValue }) {
 
     useEffect(() => {
         fetch_jobs();
-    }, []);
+    }, [fetch_jobs, searchValue]);
 
 
     useEffect(() => {
