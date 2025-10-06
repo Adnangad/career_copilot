@@ -1,7 +1,11 @@
 # This module defines the various api endpoints
 
 from fastapi import FastAPI, Depends, UploadFile, Response, Request, Query
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache.decorator import cache
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
@@ -15,12 +19,20 @@ import requests
 from math import ceil
 from typing import List, Optional
 load_dotenv()
+from fastapi_cache.key_builder import default_key_builder
+
+def my_custom_key_builder(func, namespace, request, response, *args, **kwargs):
+    key = f"{namespace}:{request.url.path}?{request.url.query}"
+    return key
+
 
 app = FastAPI()
 
+allow_org = ["http://localhost:5173", "https://career-copilot-9qfry53c5-adnangads-projects.vercel.app", "https://career-copilot-nine.vercel.app/"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://career-copilot-9qfry53c5-adnangads-projects.vercel.app", "https://career-copilot-nine.vercel.app/"],
+    allow_origins=allow_org,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -30,6 +42,7 @@ llm_api = os.getenv("LLM_API")
 
 redis_url = os.getenv("UPSTASH_REDIS_REST_URL")
 redis_token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+redis_cache_url = os.getenv("UPSTASH_REDIS")
 redis = Redis(url=redis_url, token=redis_token)
 
 db_uri = os.getenv('psql')
@@ -63,8 +76,14 @@ def delete_resume(thread_id):
         redis.delete(key)
         return "Success"
 
+@app.on_event("startup")
+async def startup():
+    caching_redis = aioredis.from_url(redis_cache_url, encoding="utf-8", decode_responses=True)
+    FastAPICache.init(RedisBackend(caching_redis), prefix="fastapi-cache")
+
 
 @app.get("/jobs")
+@cache(expire=60 * 5)
 def root(page: int = 1, page_size: int = 10, filters: Optional[List[str]] = Query(None), db: Session = Depends(get_db)):
     try:
         query = db.query(Jobs)
@@ -118,10 +137,12 @@ async def analyse_chance(jobId: int, request: Request, db: Session = Depends(get
             return {"status": 404, "message": "Job not found"}
         if thread_id is None:
             return {"status": 403, "message": "You are yet to include your resume"}
-        analyse_url = llm_api + f"analyze?thread_id={thread_id}&jobId={jobId}"
+        analyse_url = "http://127.0.0.1:8001/" + f"analyze?thread_id={thread_id}&jobId={jobId}"
+        print("URL IS:: ", analyse_url)
         resp = requests.post(analyse_url)
         data = resp.json()
         if data["status"] == 200:
+            print(data)
             return {"status": 200, "message": "Success", "analysis": data["analysis"]}
         else:
             raise Exception
@@ -139,14 +160,14 @@ async def generate_cv(jobId: int, request: Request, db: Session = Depends(get_db
         
         if thread_id is None:
             return {"status": 403, "message": "You are yet to include your resume"}
-        cv_url = llm_api + f"generate_cover_letter?thread_id={thread_id}&jobId={jobId}"
+        cv_url = "http://127.0.0.1:8001/" + f"generate_cover_letter?thread_id={thread_id}&jobId={jobId}"
         resp = requests.post(cv_url)
         data = resp.json()
         if data["status"] == 200:
-            return {"status": 200, "message": "Success", "analysis": data["letter"]}
+            return {"status": 200, "message": "Success", "letter": data["letter"]}
         else:
             raise Exception
     except Exception as e:
         print("ERROR IS:: ", e)
-        return {'status': 500, 'message': 'Unable'}
+        return {'status': 500, 'message': 'Unable to generate cover letter'}
         
