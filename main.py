@@ -49,7 +49,7 @@ redis_cache_url = os.getenv("UPSTASH_REDIS")
 redis = Redis(url=redis_url, token=redis_token)
 
 db_uri = os.getenv('psql')
-engine = create_engine(db_uri)
+engine = create_engine(db_uri, connect_args={"sslmode": "require"})
 Base = automap_base()
 Base.prepare(engine)
 Jobs = Base.classes.jobs
