@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { Bouncy } from "ldrs/react";
 import 'ldrs/react/Bouncy.css';
 
-export default function Header({setSearch}) {
+export default function Header({ setSearch }) {
     const [showUpload, setShowUpload] = useState(false);
     const fileInputRef = useRef(null);
     const resumeUrl = import.meta.env.VITE_PUBLIC_RESUME_URL;
@@ -15,7 +15,7 @@ export default function Header({setSearch}) {
 
     async function applySearch() {
         console.log("SEARCHING:>>> ", searchVal)
-        setSearch(searchVal);        
+        setSearch(searchVal);
     }
     const handleSubmit = async (event) => {
         try {
@@ -60,12 +60,31 @@ export default function Header({setSearch}) {
 
             <nav className="navBar">
                 <div>
-                    <input type="text" 
-                    onChange={(e) => setSearchVal(e.target.value)}
-                    className="border rounded-2xl p-2 w-2xl" placeholder="Search..."></input>
+                    <div className="relative inline-block">
+                        <input
+                            type="text"
+                            value={searchVal}
+                            onChange={(e) => setSearchVal(e.target.value)}
+                            className="border rounded-2xl p-2 pr-8 w-2xl"
+                            placeholder="Search..."
+                        />
+
+                        {/* Clear button */}
+                        {searchVal && (
+                            <button
+                                onClick={() => {
+                                    setSearchVal("");
+                                    setSearch("");
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-red-300 hover:text-gray-800 cursor-pointer"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
                     <button type="submit"
-                    onClick={applySearch}
-                    className="ml-3 p-2 pl-5 pr-5 bg-blue-400 rounded-xl text-white cursor-pointer hover:bg-blue-200 hover:text-black"
+                        onClick={applySearch}
+                        className="ml-3 p-2 pl-5 pr-5 bg-blue-400 rounded-xl text-white cursor-pointer hover:bg-blue-200 hover:text-black"
                     >Search</button>
                 </div>
                 <div className="ml-30 cursor-pointer" onClick={() => setShowUpload(true)}>
@@ -83,7 +102,7 @@ export default function Header({setSearch}) {
                     "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-300 w-[400px] h-[320px] rounded-2xl shadow-lg z-50 p-6"
                 >
                     <div className="float-right">
-                        <X className="text-red-600 cursor-pointer" onClick={() => {setShowUpload(false); setIsLoading(false)}}></X>
+                        <X className="text-red-600 cursor-pointer" onClick={() => { setShowUpload(false); setIsLoading(false) }}></X>
                     </div>
                     <div className="ml-8 mt-5">
                         <h2 className="text-xl font-bold mb-2">Upload your resume</h2>
