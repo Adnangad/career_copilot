@@ -35,7 +35,7 @@ allow_org = ["http://localhost:5173", "https://career-copilot-9qfry53c5-adnangad
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_org,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
