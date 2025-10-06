@@ -29,7 +29,9 @@ def my_custom_key_builder(func, namespace, request, response, *args, **kwargs):
 app = FastAPI()
 
 allow_org = ["http://localhost:5173", "https://career-copilot-9qfry53c5-adnangads-projects.vercel.app", 
-             "https://career-copilot-nine.vercel.app/", "https://career-copilot-front.onrender.com/"]
+             "https://career-copilot-nine.vercel.app/", "https://career-copilot-front.onrender.com/",
+             "https://career-copilot.netlify.app/"
+             ]
 
 app.add_middleware(
     CORSMiddleware,
