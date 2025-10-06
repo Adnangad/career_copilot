@@ -24,7 +24,7 @@ When provided with a job description (JD) and details about the applicant (skill
 - Summarize the reasoning behind the score, balancing both strengths and gaps.
 
 Format your output in the following structure:
-{'relevant_skills_and_experiences': ['data'], 'areas_for_improvement': ['data'], 'match_score': '%', 'summary_and_resoning': 'data'}
+{'relevant_skills_and_experiences': ['data'], 'areas_for_improvement': ['data'], 'match_score': '%', 'summary_and_reasoning': 'data'}
 Your goal is to act like a career coach—clear, supportive, and actionable—helping the candidate make informed career decisions.
 """
 

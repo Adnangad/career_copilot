@@ -13,6 +13,11 @@ from upstash_redis import Redis
 from langchain.chat_models import init_chat_model
 from typing import List
 from pydantic import BaseModel
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache.decorator import cache
 
 class JobRequest(BaseModel):
     job_titles: List[str]
@@ -23,7 +28,8 @@ load_dotenv()
 xai_api = getenv("XAI_API_KEY")
 redis_url = getenv("UPSTASH_REDIS_REST_URL")
 redis_token = getenv("UPSTASH_REDIS_REST_TOKEN")
-db_url = getenv("psql")
+db_url = getenv("PSQL")
+redis_cache_url = getenv("UPSTASH_REDIS")
 
 # FastAPI app setup
 app = FastAPI()
@@ -66,9 +72,18 @@ def get_resume(thread_id):
 
 memory = MemorySaver()
 
+@app.on_event("startup")
+async def startup():
+    caching_redis = aioredis.from_url(redis_cache_url, encoding="utf-8", decode_responses=True)
+    FastAPICache.init(RedisBackend(caching_redis), prefix="fastapi-llm")
+    print("FastAPI cache initialized with Upstash Redis")
+
+
 @app.post("/analyze")
+@cache(expire=60 * 5)
 def analyse_candidate(thread_id: str, jobId: int, db: Session = Depends(get_db)):
     try:
+        print("CALLED")
         resume = get_resume(thread_id)
         job = db.query(Jobs).filter_by(id=jobId).first()
         messages = [
@@ -88,6 +103,7 @@ def analyse_candidate(thread_id: str, jobId: int, db: Session = Depends(get_db))
         return {"status": 500, "message": "Error, Unable to generate analysis at this time"}
 
 @app.post("/generate_cover_letter")
+@cache(expire=60 * 5)
 def generate_cover(thread_id: str, jobId: int, db: Session = Depends(get_db)):
     try:
         config = {"configurable": {"thread_id": thread_id}}
