@@ -64,24 +64,26 @@ export default function Jobs({ searchValue }) {
 
     const fetch_jobs = useCallback(async (page = 1, limit = 10, append = false) => {
         try {
-            setJobsLoading(true)
-            setJobs([])
-            setJob(null)
+            setJobsLoading(true);
+            if (!append) {
+                setJobs([]);
+                setJob(null);
+            }
+
             const baseUrl = import.meta.env.VITE_PUBLIC_JOBS_URL;
             if (!baseUrl) {
                 setError("No jobs URL found in environment variables.");
                 console.log(baseUrl);
                 return;
             }
+
             const url = `${baseUrl}?page=${page}&page_size=${limit}${filter_urlz}`;
             const response = await axios.get(url);
 
             if (response.status === 200 && response.data?.jobs) {
-                console.log("Jobs fetched successfully");
-                let newJobs = response.data.jobs
+                let newJobs = response.data.jobs;
 
-                if (searchValue.length > 0) {
-                    console.log("FILTERING")
+                if (searchValue?.length > 0) {
                     newJobs = newJobs.filter((data) =>
                         [data.title, data.category, data.tags, data.company]
                             .join(" ")
@@ -89,27 +91,27 @@ export default function Jobs({ searchValue }) {
                             .includes(searchValue.toLowerCase())
                     );
                 }
+
                 setJobs((prev) => append ? [...prev, ...newJobs] : newJobs);
                 setJob((prev) => prev ?? newJobs[0]);
-                setHasMore(newJobs.length === limit)
+                setHasMore(newJobs.length === limit);
             } else {
                 setError("Unable to fetch jobs at this moment.");
-                setJobsLoading(false);
-                setHasMore(false)
+                setHasMore(false);
             }
         } catch (err) {
             console.error("Fetch error:", err);
             setError("Unable to fetch jobs at this time.");
-            setHasMore(false)
+            setHasMore(false);
         } finally {
             setJobsLoading(false);
             setLoadingMore(false);
         }
-    }, [filter_urlz, setJob, searchValue]);
-    
+    }, [filter_urlz, searchValue]);
+
     useEffect(() => {
         fetch_jobs();
-    }, [fetch_jobs, searchValue]);
+    }, []);
 
 
     useEffect(() => {
