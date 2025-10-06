@@ -70,6 +70,7 @@ export default function Jobs({ searchValue }) {
             const baseUrl = import.meta.env.VITE_PUBLIC_JOBS_URL;
             if (!baseUrl) {
                 setError("No jobs URL found in environment variables.");
+                console.log(baseUrl);
                 return;
             }
             const url = `${baseUrl}?page=${page}&page_size=${limit}${filter_urlz}`;
