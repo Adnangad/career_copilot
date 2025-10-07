@@ -1,6 +1,8 @@
 # Career Copilot — Job Scraper Service  
 
-This microservice is part of the Career Copilot ecosystem — an AI-powered platform that helps job seekers discover and analyze opportunities.  
+A live demo of this app can be found at: https://career-copilot.netlify.app/ <br>
+
+This microservice is part of the Career Copilot ecosystem — an AI-powered platform that helps job seekers discover and analyze opportunities.The app lists jobs scraped from Hiring caffe website.It automatically scrapes jobs, analyzes candidate–job fit using AI, and generates personalized cover letters based on the candidate’s resume.<br>
 
 The Job Scraper Service automates the process of fetching job listings from the web, categorizing them using AI, and storing them in a centralized database for downstream analysis and visualization.  
 
@@ -22,7 +24,7 @@ This service runs independently as part of a microservice architecture, where ot
 | Database  | Neon PostgresQL
 | Language	|  Python 3.10+
 
-📁 Project Structure
+## 📁 Project Structure
 career-copilot/
 │
 ├── main.py                # Entry point for scraping and categorization
@@ -94,3 +96,5 @@ Adnan Obuya <br>
 Portfolio: https://portfolio-front-mhuj.onrender.com/ <br>
 License
 MIT License © 2025 Adnan Obuya <br>
+
+A live demo of this app can be found at: https://career-copilot.netlify.app/ <br
