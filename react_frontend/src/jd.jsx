@@ -63,7 +63,7 @@ export default function Job_Description({ job }) {
                 credentials: "include"
             });
             const data = await resp.json();
-            if (resp.status == 200) {
+            if (resp.status == 200 && data["status"] === 200) {
                 console.log("RECEIVED:: ", typeof (data["letter"]));
                 setGeneratedLeter(data["letter"]);
             }
