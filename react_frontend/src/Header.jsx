@@ -36,7 +36,7 @@ export default function Header({ setSearch }) {
                 credentials: "include"
             });
             const result = await response.json();
-            if (result.status == 200) {
+            if (result["status"] == 200) {
                 setIsLoading(false);
                 setShowUpload(false);
             } else {
