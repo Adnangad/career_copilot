@@ -31,7 +31,7 @@ export default function Job_Description({ job }) {
                     credentials: "include",
                 });
             const data = await response.json();
-            if (response.status === 200) {
+            if (response.ok && data["status"] === 200) {
                 let analysis = data['analysis'];
                 if (typeof analysis === "string") {
                     try {

@@ -87,14 +87,12 @@ export default function Header({ setSearch }) {
                         className="ml-3 p-2 pl-5 pr-5 bg-blue-400 rounded-xl text-white cursor-pointer hover:bg-blue-200 hover:text-black"
                     >Search</button>
                 </div>
-                <div className="ml-30 cursor-pointer" onClick={() => setShowUpload(true)}>
+                <div className="ml-30 flex cursor-pointer justify-between mr-5" onClick={() => setShowUpload(true)}>
                     <img
                         className="hover:bg-gray-300"
                         src="/download.svg" alt="Upload Resume" width={20} height={30}
                     ></img>
-                </div>
-                <div className="settings">
-                    <img src='/settings.svg' alt="settings" width={20} height={30}></img>
+                    <span>Upload resume</span>
                 </div>
             </nav>
             {showUpload && (
