@@ -30,12 +30,12 @@ app = FastAPI()
 
 allow_org = ["http://localhost:5173", "https://career-copilot-9qfry53c5-adnangads-projects.vercel.app", 
              "https://career-copilot-nine.vercel.app/", "https://career-copilot-front.onrender.com/",
-             "https://career-copilot.netlify.app/"
+             "https://career-copilot.netlify.app/", "https://career-copilot.netlify.app/"
              ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_org,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
