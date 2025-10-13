@@ -1,0 +1,19 @@
+{
+  "name": "node_backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test",
+    "build": "tsc",
+    "dev": "nodemon --watch  'src/**/*' --exec 'ts-node' src/server.ts",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "adnan",
+  "license": "ISC",
+  "description": "",
+  "type": "commonjs",
+  "dependencies": {
+    "ts-node": "^10.9.2"
+  }
+}
