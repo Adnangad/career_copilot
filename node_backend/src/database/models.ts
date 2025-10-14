@@ -10,6 +10,7 @@ class Jobs extends Model {
     declare category: string;
     declare tags: string;
     declare link: string;
+    declare created_at: Date;
 }
 
 Jobs.init({
@@ -39,9 +40,14 @@ Jobs.init({
     tags: {
         type: DataTypes.STRING
     },
+    created_at: {
+        type: DataTypes.DATE
+    },
 },
     {
         sequelize: sequelize,
+        timestamps: false,
+        tableName: "jobs",
         indexes: [
             {
                 unique: true,
