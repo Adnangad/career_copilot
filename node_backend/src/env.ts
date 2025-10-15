@@ -7,4 +7,6 @@ export const env = {
     DATABASE: process.env.PGDATABASE || "",
     PASSWORD: process.env.PGPASSWORD || "",
     HOST: process.env.PGHOST || "",
+    REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || "",
+    REDIS_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || ""
 }
